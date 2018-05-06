@@ -3,6 +3,7 @@ import datetime
 import tushare as ts
 import pandas as pd
 
+# Interval rise and fall
 def interval_increase(code, date_str_start, interval):
     date_start = datetime.datetime.strptime(date_str_start, '%Y-%m-%d')
     date_end = date_start + datetime.timedelta(days = interval)
@@ -18,7 +19,7 @@ def interval_increase(code, date_str_start, interval):
     return str(round((interval_end - interval_start) * 100 / interval_start, 2)) + "%"
 
 
-# ∏˘æ›»’∆⁄µƒø™ º∫ÕΩ· ¯£¨ªÒ»°»’∆⁄∑∂Œß
+# get date list
 def get_date_list(date_str_start, date_str_end):
     date_start = datetime.datetime.strptime(date_str_start, '%Y-%m-%d')
     date_end = datetime.datetime.strptime(date_str_end, '%Y-%m-%d')
@@ -32,7 +33,7 @@ def get_date_list(date_str_start, date_str_end):
     return dates
 
 
-# ƒ¨»œVOL
+# get default volume
 def get_default_vol(code):
     if code.startswith('002'):
         vol = 500
@@ -46,7 +47,7 @@ def get_default_vol(code):
     return vol
 
 
-# π…∆±∑∂Œß
+# get stock plate
 def get_stock_range(market):
     cyb = range(300001, 300999)
     sha = range(600000, 604999)
@@ -67,7 +68,7 @@ def get_stock_range(market):
     return stock_range
 
 
-# ∏˘æ›π…∆±¥˙¬ÎªÒ»°¥Ûµ• ˝æ›
+# get stock dd
 def dd(stock_code, date_val = date.today(), vol = 0):
     if vol == 0:
         vol = get_default_vol(stock_code)
@@ -77,7 +78,7 @@ def dd(stock_code, date_val = date.today(), vol = 0):
     return result
 
 
-# ªÒ»°À˘”–µƒ¥Ûµ• ˝æ›
+# get stock dd by market
 def dd_all(market = 'all', date_val = date.today()):
     result = []
     stock_range = get_stock_range(market)
@@ -92,7 +93,7 @@ def dd_all(market = 'all', date_val = date.today()):
     return result
 
 
-# ¥Ûµ•æª∂Ó
+# get stock dd net
 def dd_net(stock_code, date_val = date.today(), vol = 0):
     if vol == 0:
         vol = get_default_vol(stock_code)
@@ -130,7 +131,7 @@ def dd_net(stock_code, date_val = date.today(), vol = 0):
     except:
         print("dd_net exception occur!")
 
-# ªÒ»°À˘”–µƒ¥Ûµ•æª∂Ó
+# get stock dd net by market
 def dd_net_all(market = "all", date_val = date.today()):
     stock_range = get_stock_range(market)
     
@@ -155,39 +156,39 @@ def dd_net_all(market = "all", date_val = date.today()):
     
         net_all_df = pd.DataFrame(net_all_data)
 
-        real_time_all = ts.get_today_all()
-        result = pd.merge(net_all_df, real_time_all, how="inner", on="code")
+        # real_time_all = ts.get_today_all()
+        result = net_all_df # pd.merge(net_all_df, real_time_all, how="inner", on="code")
         
         date_str = str(date_val)
         #result[["code", "name_x", "buy", "date", "sell", "net", "changepercent", "trade", "open", "high", "low", "volume", "turnoverratio", "amount", "per", "pb", "mktcap", "nmc"]].sort_values(["net"], ascending=False).to_excel("C:\\Users\\enhua\\Desktop\\python_script\\dd_net(" + date_str + ").xlsx", sheet_name=date_str)
         
         #print(result[["code", "name_x", "buy", "sell", "net", "changepercent", "date", "week_incr", "month_incr"]].sort_values(["net"], ascending=False))
         
-        return result[["code", "name_x", "buy", "sell", "net", "changepercent", "date", "week_incr", "month_incr"]].sort_values(["net"], ascending=False)
+        return result.sort_values(["net"], ascending=False)
     
     except:
         print("dd_net_all exception occur!")
 
 
-# ªÒ»°“ª∏ˆ ±º‰∂Œƒ⁄£¨¥Ûµ•æª¡˜»Î«∞ num √˚µƒπ…∆±«Èøˆ
-def dd_net_in_dates(date_start_str, date_end_str, num = "5", market = "all"):
+# get stock net in date list by market
+def dd_net_in_dates(date_start_str, date_end_str, num = 5, market = "all"):
     dd_net_list = []
     
     for date_str in get_date_list(date_start_str, date_end_str):
         dd_net_one_day = dd_net_all(market, date_str)
         if dd_net_one_day is not None:
-            print(dd_net_one_day.head(num))
-            dd_net_list.append(dd_net_one_day.tail(num))
-            dd_net_list.append(dd_net_one_day.head(numan))
-
+            print("dd_net_one_day(", date_str, "): ", dd_net_one_day.head(1))
+            # print(dd_net_one_day.head(num))
+            dd_net_list.append(dd_net_one_day)
+    
     result = pd.concat(dd_net_list)
 
     return result
 
 def dd_ana():
-    return dd_net_in_dates("2018-4-12", "2018-4-13")
+    return dd_net_in_dates("2018-4-12", "2018-5-4", market="cy")
 
-# ∑µªÿ…œ“ª∏ˆºæ∂»£¨”√listµƒ–Œ Ω±Ì æ
+# get pre season list
 def pre_season():
     d = date.today()
     y = d.year
@@ -208,7 +209,7 @@ def pre_season():
         return [ y, s - 1 ]
 
 
-# ◊€∫œROE, √´¿˚¬  - gross_profit_rate£¨æª¿˚¬ —°π… - net_profits
+# basis
 def roe(year = 2017, season = 4):
     r = ts.get_profit_data(year, season)
     result = r.loc[(r['roe'] > 15) & (r['gross_profit_rate'] > 50) & (r['net_profits'] > 20), ['code', 'name', 'roe', 'gross_profit_rate', 'net_profit_ratio', 'net_profits', 'business_income']]
@@ -232,7 +233,7 @@ def broker(days=5):
     return b
 
 
-# Õ≥º∆¿˙ ∑’«µ¯ÃÏ ˝
+# history raise and fall days statistics
 def change_statistics(code):
     list = []
     up = 0
